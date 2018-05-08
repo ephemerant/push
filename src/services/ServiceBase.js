@@ -2,13 +2,16 @@ const vscode = require('vscode');
 const path = require('path');
 const tmp = require('tmp');
 
+const ServiceInterface = require('./ServiceInterface');
 const utils = require('../lib/utils');
 const Paths = require('../lib/Paths');
 const channel = require('../lib/channel');
 const i18n = require('../lang/i18n');
 
-class ServiceBase {
+class ServiceBase extends ServiceInterface {
 	constructor(options, serviceDefaults) {
+		super();
+
 		this.setOptions(options);
 
 		this.type = '';
@@ -304,59 +307,12 @@ class ServiceBase {
 	}
 
 	/**
-	 * Base service file upload method.
-	 * @param {string} src - File source path
-	 * @param {string} dest - File destination path
-	 * @param {string} [collisionAction] - What to do on file collision. Use one
-	 * of the utils.collisionOpts collision actions.
-	 * @returns {promise}
-	 */
-	put() {
-		throw new Error('Service #put method is not yet implemented!');
-	}
-
-	/**
-	 * Base service file download method.
-	 * @param {string} src - File source path
-	 * @param {string} dest - File destination path
-	 * @param {string} [collisionAction] - What to do on file collision. Use one
-	 * of the utils.collisionOpts collision actions.
-	 * @returns {promise}
-	 */
-	get() {
-		throw new Error('Service #get method is not yet implemented!');
-	}
-
-	/**
-	 * @param {string} dir - Directory to list.
-	 * @description
-	 * Base service directory listing method.
-	 * Should return a promise either resolving to a list in the format given by
-	 * {@link PathCache#getDir}, or rejecting if the directory passed could not be found.
-	 * @returns {promise}
-	 */
-	list() {
-		throw new Error('Service #list method is not yet implemented!');
-	}
-
-	/**
-	 * Base service stop function. Implementation is optional.
-	 *
 	 * Used to ensure that an existing transfer is halted.
 	 */
 	stop() {
 		this.setProgress(false);
 		return Promise.resolve();
 	}
-
-	/**
-	 * Base service disconnect function. Implementation is optional, but it may
-	 * be used in the future for preventing hanging connections over time.
-	 *
-	 * It is the responsibility of the service implementation to ensure all its
-	 * active connections are removed.
-	 */
-	disconnect() {}
 
 	/**
 	 * @description

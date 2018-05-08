@@ -1,6 +1,6 @@
 const vscode = require('vscode');
 
-const ServiceBase = require('../services/Base');
+const ServiceBase = require('../services/ServiceBase');
 const ServiceSFTP = require('../services/SFTP');
 const ServiceFile = require('../services/File');
 const PushBase = require('./PushBase');

@@ -2,7 +2,7 @@ const vscode = require('vscode');
 const fs = require('fs');
 const path = require('path');
 
-const ServiceBase = require('./Base');
+const ServiceBase = require('./ServiceBase');
 const utils = require('../lib/utils');
 const ExtendedStream = require('../lib/ExtendedStream');
 const PathCache = require('../lib/PathCache');

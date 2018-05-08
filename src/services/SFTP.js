@@ -6,7 +6,7 @@ const path = require('path');
 const homedir = require('os').homedir;
 const micromatch = require("micromatch");
 
-const ServiceBase = require('./Base');
+const ServiceBase = require('./ServiceBase');
 const utils = require('../lib/utils');
 const PathCache = require('../lib/PathCache');
 const channel = require('../lib/channel');
@@ -1028,54 +1028,6 @@ class ServiceSFTP extends ServiceBase {
 	}
 
 	/**
-	 * Retrieves the contents of a private key. Will fall back to the current home
-	 * folder if no path is specified.
-	 * @param {string} file
-	 */
-	_getPrivateKey(service) {
-		let keyFile, homeDir, defaultKeyFiles, a;
-
-		keyFile = String(
-			// TODO: get the right private key for gateway SFTP
-			(service && service.privateKey) ||
-			this.config.privateSSHKey ||
-			''
-		).trim();
-
-		if (fs.existsSync(keyFile)) {
-			return {
-				'file': keyFile,
-				'contents': fs.readFileSync(keyFile, 'UTF-8')
-			};
-		} else if (keyFile !== '') {
-			// File doesn't exist and wasn't empty
-			channel.appendLocalisedError('key_file_not_found', keyFile);
-			return false;
-		}
-
-		// Fall back to attempting to find by default
-		homeDir = homedir();
-		defaultKeyFiles = [
-			homeDir + '/.ssh/identity',
-			homeDir + '/.ssh/id_dsa',
-			homeDir + '/.ssh/id_rsa',
-		];
-
-		for (a = 0; a < defaultKeyFiles.length; a += 1) {
-			if (fs.existsSync(defaultKeyFiles[a])) {
-				// Save privateKey location for session...
-				service.privateKey = defaultKeyFiles[a];
-
-				// ... Then return
-				return {
-					'file': defaultKeyFiles[a],
-					'contents': fs.readFileSync(defaultKeyFiles[a], 'UTF-8')
-				};
-			}
-		}
-	}
-
-	/**
 	 * @param {string} file - Remote file to test.
 	 * @description
 	 * Retrieves the mime data from a file. Uses the `file` command on an SFTP server.
@@ -1135,6 +1087,54 @@ class ServiceSFTP extends ServiceBase {
 			password: true,
 			prompt: i18n.t('sftp_enter_ssh_pass')
 		});
+	}
+
+	/**
+	 * Retrieves the contents of a private key. Will fall back to the current home
+	 * folder if no path is specified.
+	 * @param {string} file
+	 */
+	_getPrivateKey(service) {
+		let keyFile, homeDir, defaultKeyFiles, a;
+
+		keyFile = String(
+			// TODO: get the right private key for gateway SFTP
+			(service && service.privateKey) ||
+			this.config.privateSSHKey ||
+			''
+		).trim();
+
+		if (fs.existsSync(keyFile)) {
+			return {
+				'file': keyFile,
+				'contents': fs.readFileSync(keyFile, 'UTF-8')
+			};
+		} else if (keyFile !== '') {
+			// File doesn't exist and wasn't empty
+			channel.appendLocalisedError('key_file_not_found', keyFile);
+			return false;
+		}
+
+		// Fall back to attempting to find by default
+		homeDir = homedir();
+		defaultKeyFiles = [
+			homeDir + '/.ssh/identity',
+			homeDir + '/.ssh/id_dsa',
+			homeDir + '/.ssh/id_rsa',
+		];
+
+		for (a = 0; a < defaultKeyFiles.length; a += 1) {
+			if (fs.existsSync(defaultKeyFiles[a])) {
+				// Save privateKey location for session...
+				service.privateKey = defaultKeyFiles[a];
+
+				// ... Then return
+				return {
+					'file': defaultKeyFiles[a],
+					'contents': fs.readFileSync(defaultKeyFiles[a], 'UTF-8')
+				};
+			}
+		}
 	}
 };
 
