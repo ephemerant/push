@@ -43,8 +43,8 @@ class Paths {
 
 		return (
 			normalise ?
-			this.getNormalPath(workspaceFolder.uri) :
-			workspaceFolder.uri
+				this.getNormalPath(workspaceFolder.uri) :
+				workspaceFolder.uri
 		);
 	}
 
@@ -113,7 +113,7 @@ class Paths {
 			try {
 				const stats = fs.statSync(this.getNormalPath(dir));
 				return stats.isDirectory();
-			} catch(e) {
+			} catch (e) {
 				return false;
 			}
 		}
@@ -184,9 +184,10 @@ class Paths {
 
 		return new Promise((resolve, reject) => {
 			new glob.Glob(
-				include,
+				this.getCWDParts(include).path,
 				this.getGlobOptions({
-					ignore: ignoreGlobs
+					ignore: ignoreGlobs,
+					cwd: this.getCWDParts(include).cwd
 				}),
 				(error, matches) => {
 					if (error) {
@@ -199,24 +200,61 @@ class Paths {
 		});
 	}
 
+	/**
+	 * @param {string} path - The path to process
+	 * 
+	 * This returns the bare minimum "cwd" in order for any UNCs to resolve, while leaving as much as possible in "path" for "ignoreGlobs" to filter out if necessary.
+	 * 
+	 * Implemented due to the following issue with UNC paths: https://github.com/isaacs/node-glob/issues/74
+	 * 
+	 * Inspired by pste and khullah's comments: https://github.com/isaacs/node-glob/issues/74#issuecomment-369860520
+	 */
+	getCWDParts(path) {
+		// Normalize slashes
+		path = path.replace(/\\/g, '/');
+
+		let paths = path.split('/');
+		let cwd = [];
+
+		// Add any slashes that were at the start
+		while (paths[0] === '')
+			cwd.push(paths.shift());
+
+		// Add the first path
+		cwd.push(paths.shift());
+
+		// UNC if cwd begins with two slashes; we must add another path in order for the glob to read it properly
+		if (cwd.length > 2)
+			cwd.push(paths.shift());
+
+		return {
+			cwd: cwd.join('/'),
+			path: paths.join('/')
+		}
+	}
+
 	filterUriByGlobs(uri, ignoreGlobs = []) {
 		return new Promise((resolve, reject) => {
 			if (!Array.isArray(ignoreGlobs) || !ignoreGlobs.length) {
 				resolve(uri);
 			}
 
+			let path = this.getNormalPath(uri);
+
 			new glob.Glob(
-				`${this.getNormalPath(uri)}`,
+				this.getCWDParts(path).path,
 				this.getGlobOptions({
-					ignore: ignoreGlobs
+					ignore: ignoreGlobs,
+					cwd: this.getCWDParts(path).cwd
 				}),
 				(error, matches) => {
 					if (error) {
 						reject(error);
 					}
 
+					// The file exists
 					if (matches.length) {
-						resolve(vscode.Uri.file(matches[0]));
+						resolve(path);
 					} else {
 						resolve(false);
 					}

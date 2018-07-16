@@ -11,6 +11,7 @@ const Watch = require('./lib/Watch');
 const SCM = require('./lib/SCM');
 const channel = require('./lib/channel');
 const utils = require('./lib/utils');
+const tools = require('./lib/tools');
 const i18n = require('./lang/i18n');
 
 class Push extends PushBase {
@@ -192,9 +193,7 @@ class Push extends PushBase {
 			newConfig.serviceSettingsHash = settings.hash;
 
 			// Expand environment variables
-			newConfig.service.root = newConfig.service.root.replace(/%([^%]+)%/g, function(_, n) {
-				return process.env[n] || _;
-			});
+			newConfig.service.root = tools.expandEnvironmentVariables(newConfig.service.root);
 
 			return newConfig;
 		} else {
