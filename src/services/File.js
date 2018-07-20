@@ -261,7 +261,8 @@ class File extends ServiceBase {
 			};
 
 			// Delete destination in case we don't have permission to open it for writing (i.e. if it's read-only)
-			fs.unlinkSync(dest);
+			if (fs.existsSync(dest))
+				fs.unlinkSync(dest);
 
 			// Create write stream & attach events
 			this.writeStream = fs.createWriteStream(dest);
